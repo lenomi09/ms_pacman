@@ -4,10 +4,13 @@ from pathlib import PosixPath
 from deep_Q_network import DQN, Buffer
 
 try:
-    from rich import print 
+    from rich import print
 except ImportError:
     import warnings
-    warnings.warn("If you want colors, you must install rich (pip install rich)", UserWarning, 2)
+
+    warnings.warn(
+        "If you want colors, you must install rich (pip install rich)", UserWarning, 2
+    )
 
 Y_LABELS = (
     "Loss per optimization",
@@ -18,9 +21,11 @@ Y_LABELS = (
     "Total of max predicted Q value",
 )
 
+
 def save_model(path: PosixPath, model: DQN, name: str, version: int):
     torch.save(model, path / f"{name}-model-{version}.pt")
-    print(f"Model \"{name}\" (version {version}) saved.")
+    print(f'Model "{name}" (version {version}) saved.')
+
 
 def save_plot(path: PosixPath, buffer: Buffer):
     fig, axis = plt.subplots(2, 3, figsize=(16, 10))
@@ -34,6 +39,6 @@ def save_plot(path: PosixPath, buffer: Buffer):
     fig.suptitle(f"Episode {episodes} | Total of successes = {successes}")
     fig.tight_layout()
     plt.savefig(path / f"episode-{buffer.episodes}.png")
-    print(f"Figure \"episode-{buffer.episodes}.png\" saved.")
+    print(f'Figure "episode-{buffer.episodes}.png" saved.')
     for axis in axis:
         axis.cla()

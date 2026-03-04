@@ -137,8 +137,18 @@ class DataHandler:
         with Live(progress):
             while True:
                 if self.steps_done > params.MAX_FRAMES:
-                    save_model(self.policy.state_dict(), "policy", self.episodes)
-                    save_model(self.target.state_dict(), "target", self.episodes)
+                    save_model(
+                        self.paths.path_models,
+                        self.policy.state_dict(),
+                        "policy",
+                        self.episodes,
+                    )
+                    save_model(
+                        self.paths.path_models,
+                        self.target.state_dict(),
+                        "target",
+                        self.episodes,
+                    )
                     break
                 for _ in self.run_one_episode():
                     yield
