@@ -34,5 +34,5 @@ LEARNING_RATE = 2.5e-4
 MOMENTUM = 0.95
 
 # Algorithm constant
-MAX_FRAMES = 2_000
+MAX_FRAMES = 2_000_000
 SAVE_MODEL = 20  # episodes
