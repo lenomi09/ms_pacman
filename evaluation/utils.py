@@ -3,12 +3,37 @@ from utils import ACTIONS
 from deep_Q_network import parameters as params
 from deep_Q_network import device, init_obs, preprocess_observation
 from deep_Q_network import DQN, Buffer, ALEInterface, Pacman
-import gym
+
+try:
+    import gymnasium as gym
+except ModuleNotFoundError:
+    import gym
+
+
+def _env_reset(env):
+    """Handle both old gym (obs) and new gymnasium (obs, info) reset returns."""
+    result = env.reset()
+    if isinstance(result, tuple):
+        return result[0]
+    return result
+
+
+def _env_step(env, action):
+    """Handle both old gym 4-tuple and new gymnasium 5-tuple step returns."""
+    result = env.step(action)
+    if len(result) == 5:
+        obs, reward, terminated, truncated, info = result
+        done = terminated or truncated
+        return obs, reward, done, info
+    return result
+
 
 def moving_average(values, n):
     offset = (n - 1) // 2
     v = [values[0]] * offset + values + [values[-1]] * offset
-    return [sum(v[i - offset : i + offset + 1]) / n for i in range(offset, len(v) - offset)]
+    return [
+        sum(v[i - offset : i + offset + 1]) / n for i in range(offset, len(v) - offset)
+    ]
 
 
 def only_rewards(ep, path):
@@ -104,9 +129,7 @@ def record(ep, path):
     import cv2
 
     # Set environment
-    ale = ALEInterface()
-    ale.loadROM(Pacman)
-    env = gym.make("MsPacman-v0")
+    env = gym.make("ALE/MsPacman-v5", render_mode="rgb_array")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -116,7 +139,7 @@ def record(ep, path):
     agent.load_state_dict(torch.load(str(path_model), map_location=device))
     agent.eval()
 
-    obs = env.reset()
+    obs = _env_reset(env)
 
     frameSize = (160, 210)
     path_video = path / "output_video.avi"
@@ -125,10 +148,10 @@ def record(ep, path):
 
     # Avoid beginning steps of the game
     for i_step in range(params.AVOIDED_STEPS):
-        obs, reward, done, info = env.step(3)
+        obs, reward, done, info = _env_step(env, 3)
 
     observations = init_obs(env)
-    obs, reward, done, info = env.step(3)
+    obs, reward, done, info = _env_step(env, 3)
     out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
     old_action = 3
 
@@ -146,7 +169,7 @@ def record(ep, path):
         # action = agent(state).max(1)[1].view(1, 1)
 
         action_ = ACTIONS[old_action][action.item()]
-        obs, reward, done, info = env.step(action_)
+        obs, reward, done, info = _env_step(env, action_)
         out.write(cv2.cvtColor(obs, cv2.COLOR_RGB2BGR))
         old_action = action_
         if done:

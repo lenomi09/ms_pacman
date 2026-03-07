@@ -251,9 +251,7 @@ if __name__ == "__main__":
     # Get paths
     paths = start(args)
     # Set environment
-    ale = ALEInterface()
-    ale.loadROM(Pacman)
-    env = gym.make("MsPacman-v0")
+    env = gym.make("ALE/MsPacman-v5")
 
     # Set Deep Q Networks and memory
     policy = DQN(params.N_ACTIONS).to(device)
